@@ -1,9 +1,19 @@
 body {
-  padding-top: 54px;
+    padding-top: 94px;
 }
 
 @media (min-width: 992px) {
-  body {
-    padding-top: 56px;
-  }
+    body {
+        padding-top: 96px;
+    }
+}
+
+.container {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.row {
+    padding-top: 20px;
+    padding-bottom: 20px;
 }
