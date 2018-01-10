@@ -5,7 +5,7 @@ var connectionPool = require('./dbconn');
 var result = "";
 
 /* GET home page. */
-router.get('/', function (req, res, next) {
+router.get('/:phrase', function (req, res, next) {
     connectionPool.getConnection(function (err, connection) {
         if (err) {
             res.json({"code": 100, "status": "Error in connection database"});
@@ -14,13 +14,10 @@ router.get('/', function (req, res, next) {
 
         console.log('connected as id ' + connection.threadId);
 
-        connection.query("SELECT * FROM Ludzie WHERE rozmiar_buta = ?", 36, function (err, rows) {
+        connection.query("SELECT * FROM Ludzie WHERE imie LIKE ?", '%'+req.params.phrase+'%', function (err, rows) {
             connection.release();
             if (!err) {
-                res.render('index', {
-                    title: 'Express',
-                    rows: rows
-                });
+                res.render('search', {phrase: req.params.phrase , result: rows});
             }
         });
 
