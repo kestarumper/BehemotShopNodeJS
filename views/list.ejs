@@ -51,33 +51,58 @@
 
 <!-- Page Content -->
 <div class="container">
+
     <div class="row">
-        <div class="col-lg-12">
-            <div class="input-group input-group-lg">
-                <input id="search" type="text" class="form-control" placeholder="Enter product name...">
-                <span class="input-group-btn">
+
+        <div class="col-lg-3">
+
+            <h1 class="my-4">Shop Name</h1>
+            <div class="list-group">
+                <a href="#" class="list-group-item">Category 1</a>
+                <a href="#" class="list-group-item">Category 2</a>
+                <a href="#" class="list-group-item">Category 3</a>
+            </div>
+
+        </div>
+        <!-- /.col-lg-3 -->
+
+        <div class="col-lg-9">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="input-group input-group-lg">
+                        <input id="search" type="text" class="form-control" placeholder="Enter product name...">
+                        <span class="input-group-btn">
                     <button id="search-btn" class="btn btn-info" type="button">Search</button>
                 </span>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>    <!-- /.row -->
 
-    <div class="row">
-        <!-- /.col-lg-3 -->
-        <div class="col-lg-12">
-            <h1>Search for "<%= phrase %>" returned <%= result.length %> results:</h1>
             <div class="row">
+                <div class="col-lg-12">
+                    <% if(typeof catname !== 'undefined') {%>
+                        <h2><%= catname %></h2>
+                    <% } %>
 
+                    <% if(typeof searchquery !== 'undefined') {%>
+                        <h2>Search for '<%= searchquery %>':</h2>
+                    <% } %>
+
+                    <h4 class="text-muted">Found <%= result.length %> items</h4>
+                </div>
+            </div>
+
+            <div class="row">
                 <% result.forEach(function (item) { %>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="card h-100">
-                        <a href="#"><img class="card-img-top" src="http://placehold.it/700x400" alt=""></a>
+                        <a href="#"><img class="card-img-top" src="<%= item.image %>" alt="<%= item.name %>"></a>
                         <div class="card-body">
                             <h4 class="card-title">
-                                <a href="#"><%= item.PESEL %></a>
+                                <a href="/item/<%= item.name %>"><%= item.name %></a>
                             </h4>
-                            <h5><%= item.rozmiar_buta %></h5>
-                            <p class="card-text"><%= item.imie %></p>
+                            <h5><%= item.price %> zł</h5>
+                            <p class="card-text">Kategoria: <b><%= item.category %></b></p>
                         </div>
                         <div class="card-footer">
                             <small class="text-muted">&#9733; &#9733; &#9733; &#9733; &#9734;</small>
@@ -85,7 +110,6 @@
                     </div>
                 </div>
                 <% }) %>
-
             </div>
             <!-- /.row -->
 
@@ -109,6 +133,7 @@
 <!-- Bootstrap core JavaScript -->
 <script src="/vendor/jquery/jquery.min.js"></script>
 <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/javascripts/index.js"></script>
 
 </body>
 

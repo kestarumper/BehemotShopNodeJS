@@ -1,8 +1,33 @@
 var express = require('express');
 var router = express.Router();
+var mysql = require('mysql');
 var connectionPool = require('./dbconn');
 
-var result = "";
+
+function prepereSearchLikeStmnt(parameters) {
+    var queryString = parameters.queryString;
+    var fields = parameters.fields.slice();
+    var words = parameters.words.slice();
+
+    words.forEach(function (word, iter, arr) {
+        arr[iter] = '%'+word+'%';
+    });
+
+    fields.forEach(function (field, index, arr) {
+        if(index !== 0) {
+            queryString += " OR ";
+        }
+        queryString += field+" LIKE ?";
+        words.forEach(function (word, iter, arr) {
+            if(iter < arr.length-1) {
+                queryString = queryString.concat(" OR "+field+" LIKE ?");
+            }
+        });
+        queryString = mysql.format(queryString, words);
+    });
+
+    return queryString;
+}
 
 /* GET home page. */
 router.get('/:phrase', function (req, res, next) {
@@ -14,10 +39,19 @@ router.get('/:phrase', function (req, res, next) {
 
         console.log('connected as id ' + connection.threadId);
 
-        connection.query("SELECT * FROM Ludzie WHERE imie LIKE ?", '%'+req.params.phrase+'%', function (err, rows) {
+        var queryString = "SELECT * FROM items WHERE ";
+        var words = req.params.phrase.split(' ');
+        var fields = [ 'name', 'category' ];
+
+        queryString = prepereSearchLikeStmnt({queryString: queryString, fields: fields, words: words});
+
+        console.log(queryString);
+        console.log(words);
+
+        connection.query(queryString, function (err, rows) {
             connection.release();
             if (!err) {
-                res.render('search', {phrase: req.params.phrase , result: rows});
+                res.render('list', {searchquery: req.params.phrase , result: rows});
             }
         });
 
