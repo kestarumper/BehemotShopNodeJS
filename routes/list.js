@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
-var connectionPool = require('./dbconn');
+var dbConn = require('./dbconn');
+var connectionPool = dbConn.connectionPool;
 
 /* GET default category. */
 router.get('/', function (req, res, next) {

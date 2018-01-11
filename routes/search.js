@@ -1,35 +1,11 @@
 var express = require('express');
 var router = express.Router();
 var mysql = require('mysql');
-var connectionPool = require('./dbconn');
+var dbConn = require('./dbconn');
+var connectionPool = dbConn.connectionPool;
+var prepareSearchLikeStmnt = dbConn.prepareSearchLikeStmnt;
 
-
-function prepereSearchLikeStmnt(parameters) {
-    var queryString = parameters.queryString;
-    var fields = parameters.fields.slice();
-    var words = parameters.words.slice();
-
-    words.forEach(function (word, iter, arr) {
-        arr[iter] = '%'+word+'%';
-    });
-
-    fields.forEach(function (field, index, arr) {
-        if(index !== 0) {
-            queryString += " OR ";
-        }
-        queryString += field+" LIKE ?";
-        words.forEach(function (word, iter, arr) {
-            if(iter < arr.length-1) {
-                queryString = queryString.concat(" OR "+field+" LIKE ?");
-            }
-        });
-        queryString = mysql.format(queryString, words);
-    });
-
-    return queryString;
-}
-
-/* GET home page. */
+/* GET search result for phrase. */
 router.get('/:phrase', function (req, res, next) {
     connectionPool.getConnection(function (err, connection) {
         if (err) {
@@ -43,10 +19,13 @@ router.get('/:phrase', function (req, res, next) {
         var words = req.params.phrase.split(' ');
         var fields = [ 'name', 'category' ];
 
-        queryString = prepereSearchLikeStmnt({queryString: queryString, fields: fields, words: words});
+        queryString = prepareSearchLikeStmnt({
+            queryString: queryString,
+            fields: fields,
+            words: words
+        });
 
         console.log(queryString);
-        console.log(words);
 
         connection.query(queryString, function (err, rows) {
             connection.release();

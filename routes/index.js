@@ -1,8 +1,7 @@
 var express = require('express');
 var router = express.Router();
-var connectionPool = require('./dbconn');
-
-var result = "";
+var dbConn = require('./dbconn');
+var connectionPool = dbConn.connectionPool;
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -14,11 +13,11 @@ router.get('/', function (req, res, next) {
 
         console.log('connected as id ' + connection.threadId);
 
-        connection.query("SELECT * FROM items;", function (err, rows) {
+        connection.query("SELECT category, COUNT(*) AS catcount FROM items GROUP BY category", function (err, rows) {
             connection.release();
             if (!err) {
                 res.render('index', {
-                    title: 'Express',
+                    title: 'Behemot Shop',
                     rows: rows
                 });
             }
