@@ -33,6 +33,10 @@ var dbConn = {
         });
 
         return queryString;
+    },
+
+    getCategoriesStmnt : function () {
+        return "SELECT category, COUNT(*) AS catcount FROM items GROUP BY category";
     }
 };
 

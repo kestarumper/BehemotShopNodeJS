@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var dbConn = require('./dbconn');
 var connectionPool = dbConn.connectionPool;
+var getCategoriesStmnt = dbConn.getCategoriesStmnt;
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -13,7 +14,7 @@ router.get('/', function (req, res, next) {
 
         console.log('connected as id ' + connection.threadId);
 
-        connection.query("SELECT category, COUNT(*) AS catcount FROM items GROUP BY category", function (err, rows) {
+        connection.query(getCategoriesStmnt(), function (err, rows) {
             connection.release();
             if (!err) {
                 res.render('index', {

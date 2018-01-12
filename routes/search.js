@@ -4,6 +4,7 @@ var mysql = require('mysql');
 var dbConn = require('./dbconn');
 var connectionPool = dbConn.connectionPool;
 var prepareSearchLikeStmnt = dbConn.prepareSearchLikeStmnt;
+var getCategoriesStmnt = dbConn.getCategoriesStmnt;
 
 /* GET search result for phrase. */
 router.get('/:phrase', function (req, res, next) {
@@ -27,10 +28,16 @@ router.get('/:phrase', function (req, res, next) {
 
         console.log(queryString);
 
-        connection.query(queryString, function (err, rows) {
-            connection.release();
+        connection.query(queryString, function (err, items) {
             if (!err) {
-                res.render('list', {searchquery: req.params.phrase , result: rows});
+                connection.query(getCategoriesStmnt(), function (errr, categories) {
+                    connection.release();
+                    if (!errr) {
+                        res.render('list', {searchquery: req.params.phrase, items: items, categories: categories});
+                    }
+                });
+            } else {
+                connection.release();
             }
         });
 

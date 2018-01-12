@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var dbConn = require('./dbconn');
 var connectionPool = dbConn.connectionPool;
+var getCategoriesStmnt = dbConn.getCategoriesStmnt;
 
 /* GET default category. */
 router.get('/', function (req, res, next) {
@@ -13,10 +14,18 @@ router.get('/', function (req, res, next) {
 
         console.log('connected as id ' + connection.threadId);
 
-        connection.query("SELECT * FROM Ludzie;", function (err, rows) {
-            connection.release();
-            if (!err) {
-                res.render('list', {catname: req.params.category , result: rows});
+        connection.query("SELECT * FROM items;", function (err, items) {
+            if(!err) {
+                connection.query(getCategoriesStmnt(), function (errr, categories) {
+                    console.log(items);
+                    console.log(categories);
+                    connection.release();
+                    if (!errr) {
+                        res.render('list', {catname: req.params.category, items: items, categories: categories});
+                    }
+                });
+            } else {
+                connection.release();
             }
         });
 
@@ -37,14 +46,21 @@ router.get('/:category', function (req, res, next) {
 
         console.log('connected as id ' + connection.threadId);
 
-        connection.query("SELECT * FROM items WHERE category = ?", req.params.category, function (err, rows) {
-            connection.release();
+        connection.query("SELECT * FROM items WHERE category = ?", req.params.category, function (err, items) {
             if (!err) {
-                if(rows.length === 0) {
+                if(items.length === 0) {
+                    connection.release();
                     res.render('list', {catname: "Category not found", result: rows})
                 } else {
-                    res.render('list', {catname: req.params.category , result: rows});
+                    connection.query(getCategoriesStmnt(), function (errr, categories) {
+                        connection.release();
+                        if (!errr) {
+                            res.render('list', {catname: req.params.category, items: items, categories: categories});
+                        }
+                    });
                 }
+            } else {
+                connection.release();
             }
         });
 
