@@ -11,4 +11,9 @@ router.get('/', function (req, res, next) {
     });
 });
 
+// TODO: accept login
+// TODO: add fields to login form
+// TODO: log user logins
+// TODO: bcrypt compare on login
+
 module.exports = router;

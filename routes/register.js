@@ -11,4 +11,8 @@ router.get('/', function (req, res, next) {
     });
 });
 
+// TODO: accept register
+// TODO: add fields to registration form
+// TODO: bcrypt save hashed and salted password
+
 module.exports = router;
