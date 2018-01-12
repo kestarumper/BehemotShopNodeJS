@@ -11,10 +11,10 @@
     <title>Shop Homepage - Start Bootstrap Template</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="stylesheets/style.css" rel="stylesheet">
+    <link href="/stylesheets/style.css" rel="stylesheet">
 
 </head>
 
@@ -54,7 +54,33 @@
 
     <div class="row">
 
-        <!-- content -->
+        <div class="col-lg-3">
+            <h1 class="my-4">Shop Name</h1>
+            <div class="list-group">
+                <a href="/list" class="list-group-item">All items</a>
+                <% categories.forEach(function (category) { %>
+                    <a href="/list/<%= category.category%>" class="list-group-item"><%= category.category %></a>
+                <% }) %>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <img class="img-fluid" src="<%= itemDetails.image %>" alt="<%= itemDetails.name %>"/>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <h1><%= itemDetails.name %></h1>
+                        <h5><%= itemDetails.price %> zł</h5>
+                        <p class="text-muted">Kategoria: <b><%= itemDetails.category %></b></p>
+                        <button class="btn btn-success">Do koszyka</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
 
     </div>
     <!-- /.row -->
@@ -71,8 +97,8 @@
 </footer>
 
 <!-- Bootstrap core JavaScript -->
-<script src="vendor/jquery/jquery.min.js"></script>
-<script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/vendor/jquery/jquery.min.js"></script>
+<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
 </body>
 

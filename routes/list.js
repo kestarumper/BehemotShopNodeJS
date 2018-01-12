@@ -17,11 +17,9 @@ router.get('/', function (req, res, next) {
         connection.query("SELECT * FROM items;", function (err, items) {
             if(!err) {
                 connection.query(getCategoriesStmnt(), function (errr, categories) {
-                    console.log(items);
-                    console.log(categories);
                     connection.release();
                     if (!errr) {
-                        res.render('list', {catname: req.params.category, items: items, categories: categories});
+                        res.render('list', {catname: "All items", items: items, categories: categories});
                     }
                 });
             } else {
@@ -48,17 +46,16 @@ router.get('/:category', function (req, res, next) {
 
         connection.query("SELECT * FROM items WHERE category = ?", req.params.category, function (err, items) {
             if (!err) {
-                if(items.length === 0) {
+                connection.query(getCategoriesStmnt(), function (errr, categories) {
                     connection.release();
-                    res.render('list', {catname: "Category not found", result: rows})
-                } else {
-                    connection.query(getCategoriesStmnt(), function (errr, categories) {
-                        connection.release();
+                    if(items.length === 0) {
+                        res.render('list', {catname: "Category not found", items: items, categories: categories})
+                    } else {
                         if (!errr) {
                             res.render('list', {catname: req.params.category, items: items, categories: categories});
                         }
-                    });
-                }
+                    }
+                });
             } else {
                 connection.release();
             }

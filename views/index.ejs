@@ -62,10 +62,8 @@
         </div>
     </div>    <!-- /.row -->
     <h3>Or browse our items by category: </h3>
-<% rows.forEach(function (row, iter, arr) { %>
-    <% if(iter%3 == 0) { %>
     <div class="row">
-        <% } %>
+    <% rows.forEach(function (row, iter, arr) { %>
         <div class="col-sm-4">
             <div class="card text-center">
                 <div class="card-block">
@@ -76,10 +74,8 @@
             </div>
 
         </div>
-    <% if(iter%3 == 2 || iter == arr.length-1) { %>
+    <% }); %>
     </div>
-    <% } %>
-<% }); %>
 </div>
 <!-- /.container -->
 

@@ -58,6 +58,7 @@
 
             <h1 class="my-4">Shop Name</h1>
             <div class="list-group">
+                <a href="/list" class="list-group-item">All items</a>
                 <% categories.forEach(function (category) { %>
                     <a href="/list/<%= category.category%>" class="list-group-item"><%= category.category %></a>
                 <% }) %>
