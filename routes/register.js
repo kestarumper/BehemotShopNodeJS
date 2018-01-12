@@ -4,6 +4,7 @@ var dbConn = require('./dbconn');
 var bcrypt = require('bcrypt');
 var connectionPool = dbConn.connectionPool;
 var getCategoriesStmnt = dbConn.getCategoriesStmnt;
+var addUser = dbConn.addUser;
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -20,7 +21,12 @@ router.post('/new', function (req, res, next) {
         name: req.body.name,
         surname: req.body.surname,
         password: req.body.password,
-        newsletter: req.body.newsletter === 'on'
+        newsletter: req.body.newsletter === 'on' ? 1 : 0,
+        city: req.body.city,
+        street: req.body.street,
+        number: req.body.number,
+        postalcode: req.body.postalcode,
+        country: req.body.country
     };
 
     bcrypt.genSalt(10, function(err, salt) {
@@ -41,7 +47,7 @@ router.post('/new', function (req, res, next) {
 
                         console.log('connected as id ' + connection.threadId);
 
-                        connection.query(getCategoriesStmnt(), function (err, rows) {
+                        connection.query(addUser(Object.values(user)), function (err, rows) {
                             connection.release();
                             if (!err) {
                                 res.render('index', {
@@ -49,6 +55,8 @@ router.post('/new', function (req, res, next) {
                                     rows: rows,
                                     session: req.session
                                 });
+                            } else {
+                                console.log(err);
                             }
                         });
 

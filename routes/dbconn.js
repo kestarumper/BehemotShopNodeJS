@@ -40,11 +40,28 @@ var dbConn = {
     },
 
     addUser : function (user) {
-        return "CALL";
+        var result = "CALL registerNewCustomerWithAddress(";
+
+        user.forEach(function (value, iter, arr) {
+            if(typeof value === 'string') {
+                result += '"'+value+'"';
+            } else {
+                result += value;
+            }
+            if(iter < arr.length-1) {
+                result += ",";
+            } else {
+                result += ")";
+            }
+        });
+
+        console.log("INSERT QUERY: "+result);
+
+        return result;
     },
 
-    getUserPasswd : function () {
-        return "SELECT password FROM customers WHERE email = ?";
+    authenticateUser : function (email) {
+        return mysql.format("SELECT id_customer as id, password, email, name, surname FROM customer WHERE email = ?", email);
     }
 };
 

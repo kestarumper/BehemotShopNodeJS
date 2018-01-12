@@ -35,7 +35,7 @@
                         <span class="sr-only">(current)</span>
                     </a>
                 </li>
-                <% if(session.name == null) { %>
+                <% if(typeof session.user === 'undefined') { %>
                 <li class="nav-item">
                     <a class="nav-link" href="/login">Login</a>
                 </li>
@@ -44,7 +44,7 @@
                 </li>
                 <% } else { %>
                 <li class="nav-item">
-                    <a class="nav-link" href="/user/<%= session.name %>">Witaj! <%= session.name %></a>
+                    <a class="nav-link" href="/user/<%= session.user.id %>">Witaj! <%= session.user.name %></a>
                 </li>
                 <% } %>
             </ul>

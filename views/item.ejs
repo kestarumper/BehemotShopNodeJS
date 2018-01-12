@@ -23,7 +23,7 @@
 <!-- Navigation -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container">
-        <a class="navbar-brand" href="#">Start Bootstrap</a>
+        <a class="navbar-brand" href="/"><%= title %></a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
                 aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -35,15 +35,18 @@
                         <span class="sr-only">(current)</span>
                     </a>
                 </li>
+                <% if(typeof session.user === 'undefined') { %>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">About</a>
+                    <a class="nav-link" href="/login">Login</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Services</a>
+                    <a class="nav-link" href="/register">Register</a>
                 </li>
+                <% } else { %>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Contact</a>
+                    <a class="nav-link" href="/user/<%= session.user.id %>">Witaj! <%= session.user.name %></a>
                 </li>
+                <% } %>
             </ul>
         </div>
     </div>
@@ -72,10 +75,10 @@
                     </div>
 
                     <div class="col-lg-6">
-                        <h1><%= itemDetails.name %></h1>
-                        <h5><%= itemDetails.price %> zł</h5>
+                        <h1 id="itemName"><%= itemDetails.name %></h1>
+                        <h5 id="price"><%= itemDetails.price %> zł</h5>
                         <p class="text-muted">Kategoria: <b><%= itemDetails.category %></b></p>
-                        <button class="btn btn-success">Do koszyka</button>
+                        <button id="addToCart" class="btn btn-success">Do koszyka</button>
                     </div>
 
                 </div>
@@ -99,6 +102,7 @@
 <!-- Bootstrap core JavaScript -->
 <script src="/vendor/jquery/jquery.min.js"></script>
 <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/javascripts/item.js"></script>
 
 </body>
 

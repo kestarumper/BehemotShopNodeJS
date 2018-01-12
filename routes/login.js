@@ -4,7 +4,7 @@ var dbConn = require('./dbconn');
 var bcrypt = require('bcrypt');
 var connectionPool = dbConn.connectionPool;
 var getCategoriesStmnt = dbConn.getCategoriesStmnt;
-var getUserPasswd = dbConn.getUserPasswd;
+var authenticateUser = dbConn.authenticateUser;
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -15,9 +15,10 @@ router.get('/', function (req, res, next) {
 
 router.post('/enter', function (req, res, next) {
     console.log(req.body);
-    var login = req.body.login;
-    var plainpasswd= req.body.password;
-    if(login !== null && login !== "") {
+    var email = req.body.email;
+    var plainpasswd = req.body.password;
+
+    if (email !== null && email !== "") {
 
         connectionPool.getConnection(function (err, connection) {
             if (err) {
@@ -27,12 +28,19 @@ router.post('/enter', function (req, res, next) {
 
             console.log('connected as id ' + connection.threadId);
 
-            connection.query(getUserPasswd(), login, function (err, customer) {
+            var loginQuery = authenticateUser();
+
+            connection.query(authenticateUser(email), function (err, customer) {
                 connection.release();
+                console.log(customer);
                 if (!err) {
-                    bcrypt.compare(plainpasswd, customer.password, function(errr, matching) {
-                        if(!errr && matching === true) {
-                            req.session.name = customer.name;
+                    bcrypt.compare(plainpasswd, customer[0].password, function (err, matching) {
+                        console.log(matching);
+                        if (!err && matching === true) {
+                            req.session.user = {};
+                            req.session.user.id = customer[0].id;
+                            req.session.user.name = customer[0].name;
+                            req.session.user.cart = {};
                             res.redirect('/');
                         } else {
                             res.redirect('/login');

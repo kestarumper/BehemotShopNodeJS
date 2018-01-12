@@ -23,10 +23,10 @@ router.get('/:name', function (req, res, next) {
                 connection.query(getCategoriesStmnt(), function (errr, categories) {
                     connection.release();
                     if(itemDetails.length === 0) {
-                        res.render('item', {itemDetails: itemDetails, categories: categories})
+                        res.render('item', {title: "Behemot", itemDetails: itemDetails, categories: categories, session: req.session})
                     } else {
                         if (!errr) {
-                            res.render('item', {itemDetails: itemDetails[0], categories: categories});
+                            res.render('item', {title: "Behemot", itemDetails: itemDetails[0], categories: categories, session: req.session});
                         }
                     }
                 });
