@@ -11,19 +11,20 @@
     <title>Shop Homepage - Start Bootstrap Template</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="stylesheets/style.css" rel="stylesheet">
+    <link href="/stylesheets/style.css" rel="stylesheet">
 
 </head>
 
 <body>
 
 <!-- Navigation -->
+<!-- Navigation -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container">
-        <a class="navbar-brand" href="#">Start Bootstrap</a>
+        <a class="navbar-brand" href="/"><%= title %></a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
                 aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -35,15 +36,21 @@
                         <span class="sr-only">(current)</span>
                     </a>
                 </li>
+                <% if(typeof session.user === 'undefined') { %>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">About</a>
+                    <a class="nav-link" href="/login">Login</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Services</a>
+                    <a class="nav-link" href="/register">Register</a>
+                </li>
+                <% } else { %>
+                <li class="nav-item">
+                    <a class="nav-link" href="/cart">Cart</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Contact</a>
+                    <a class="nav-link" href="/user/<%= session.user.id %>">Witaj! <%= session.user.name %></a>
                 </li>
+                <% } %>
             </ul>
         </div>
     </div>
@@ -54,7 +61,37 @@
 
     <div class="row">
 
-        <!-- content -->
+        <table class="table">
+            <thead class="thead-inverse">
+            <tr>
+                <th>Product name</th>
+                <th>Product price</th>
+                <th>Quantity</th>
+                <th>Sum</th>
+            </tr>
+            </thead>
+            <tbody>
+            <%
+                var total = 0;
+                var tempTotal = 0;
+            %>
+            <% for(var item in cart) {
+                tempTotal = parseFloat(cart[item].price) * parseFloat(cart[item].quantity);
+                total += tempTotal;
+            %>
+            <tr>
+                <td><%= item %></td>
+                <td><%= cart[item].price %></td>
+                <td><%= cart[item].quantity %></td>
+                <td><%= tempTotal %> zł</td>
+            </tr>
+            <% } %>
+            <tr>
+                <td colspan="3" style="text-align: right"><b>Total:</b></td>
+                <td><h3><%= total %>zł</h3></td>
+            </tr>
+            </tbody>
+        </table>
 
     </div>
     <!-- /.row -->
@@ -71,8 +108,8 @@
 </footer>
 
 <!-- Bootstrap core JavaScript -->
-<script src="vendor/jquery/jquery.min.js"></script>
-<script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/vendor/jquery/jquery.min.js"></script>
+<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
 </body>
 

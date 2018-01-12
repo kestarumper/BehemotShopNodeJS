@@ -9,7 +9,8 @@ var authenticateUser = dbConn.authenticateUser;
 /* GET home page. */
 router.get('/', function (req, res, next) {
     res.render('login', {
-        title: "Login Page"
+        title: "Behemoth",
+        session: req.session
     });
 });
 

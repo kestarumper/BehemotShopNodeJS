@@ -17,11 +17,23 @@ function addToCart(req, parameters) {
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-    res.render('index', {title: 'Express'});
+    if (req.session.user != null) {
+        next();
+    } else {
+        res.redirect('/login');
+    }
+})
+
+router.get('/', function (req, res, next) {
+    res.render('cart', {
+        title: 'Express',
+        session: req.session,
+        cart: req.session.user.cart
+    });
 });
 
 router.post('/add', function (req, res, next) {
-    if(req.session.user != null) {
+    if (req.session.user != null) {
         next();
     } else {
         res.send("Not logged in");

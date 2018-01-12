@@ -9,7 +9,8 @@ var addUser = dbConn.addUser;
 /* GET home page. */
 router.get('/', function (req, res, next) {
     res.render('register', {
-        title: "Register Page"
+        title: "Behemoth",
+        session: req.session
     });
 });
 

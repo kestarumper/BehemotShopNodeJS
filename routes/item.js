@@ -5,7 +5,7 @@ var connectionPool = dbConn.connectionPool;
 var getCategoriesStmnt = dbConn.getCategoriesStmnt;
 
 router.get('/', function (req, res, next) {
-   res.redirect('/list');
+    res.redirect('/list');
 });
 
 /* GET selected category. */
@@ -22,11 +22,21 @@ router.get('/:name', function (req, res, next) {
             if (!err) {
                 connection.query(getCategoriesStmnt(), function (errr, categories) {
                     connection.release();
-                    if(itemDetails.length === 0) {
-                        res.render('item', {title: "Behemot", itemDetails: itemDetails, categories: categories, session: req.session})
+                    if (itemDetails.length === 0) {
+                        res.render('item', {
+                            title: "Behemot",
+                            itemDetails: itemDetails,
+                            categories: categories,
+                            session: req.session
+                        })
                     } else {
                         if (!errr) {
-                            res.render('item', {title: "Behemot", itemDetails: itemDetails[0], categories: categories, session: req.session});
+                            res.render('item', {
+                                title: "Behemot",
+                                itemDetails: itemDetails[0],
+                                categories: categories,
+                                session: req.session
+                            });
                         }
                     }
                 });

@@ -20,6 +20,7 @@ router.get('/', function (req, res, next) {
                     connection.release();
                     if (!errr) {
                         res.render('list', {
+                            title: "Behemoth",
                             catname: "All items",
                             items: items,
                             categories: categories,
@@ -55,6 +56,7 @@ router.get('/:category', function (req, res, next) {
                     connection.release();
                     if(items.length === 0) {
                         res.render('list', {
+                            title: "Behemoth",
                             catname: "Category not found",
                             items: items,
                             categories: categories,
@@ -63,6 +65,7 @@ router.get('/:category', function (req, res, next) {
                     } else {
                         if (!errr) {
                             res.render('list', {
+                                title: "Behemoth",
                                 catname: req.params.category,
                                 items: items,
                                 categories: categories,

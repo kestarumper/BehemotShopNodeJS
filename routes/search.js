@@ -34,6 +34,7 @@ router.get('/:phrase', function (req, res, next) {
                     connection.release();
                     if (!errr) {
                         res.render('list', {
+                            title: "Behemoth",
                             searchquery: req.params.phrase,
                             items: items,
                             categories: categories,
