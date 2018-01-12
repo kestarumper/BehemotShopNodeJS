@@ -19,6 +19,6 @@ SESSION_SECRET=your_bcrypt_secret
 
 ## Run
 ```
-npm run /bin/www
+npm start /bin/www
 ```
 Now your server should be up and running at `http://localhost:3000`
