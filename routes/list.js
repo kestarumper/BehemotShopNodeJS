@@ -19,7 +19,12 @@ router.get('/', function (req, res, next) {
                 connection.query(getCategoriesStmnt(), function (errr, categories) {
                     connection.release();
                     if (!errr) {
-                        res.render('list', {catname: "All items", items: items, categories: categories});
+                        res.render('list', {
+                            catname: "All items",
+                            items: items,
+                            categories: categories,
+                            session: req.session
+                        });
                     }
                 });
             } else {
@@ -49,10 +54,20 @@ router.get('/:category', function (req, res, next) {
                 connection.query(getCategoriesStmnt(), function (errr, categories) {
                     connection.release();
                     if(items.length === 0) {
-                        res.render('list', {catname: "Category not found", items: items, categories: categories})
+                        res.render('list', {
+                            catname: "Category not found",
+                            items: items,
+                            categories: categories,
+                            session: req.session
+                        });
                     } else {
                         if (!errr) {
-                            res.render('list', {catname: req.params.category, items: items, categories: categories});
+                            res.render('list', {
+                                catname: req.params.category,
+                                items: items,
+                                categories: categories,
+                                session: req.session
+                            });
                         }
                     }
                 });

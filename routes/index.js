@@ -19,7 +19,8 @@ router.get('/', function (req, res, next) {
             if (!err) {
                 res.render('index', {
                     title: 'Behemot Shop',
-                    rows: rows
+                    rows: rows,
+                    session: req.session
                 });
             }
         });

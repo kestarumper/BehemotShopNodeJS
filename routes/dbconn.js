@@ -37,6 +37,14 @@ var dbConn = {
 
     getCategoriesStmnt : function () {
         return "SELECT category, COUNT(*) AS catcount FROM items GROUP BY category";
+    },
+
+    addUser : function (user) {
+        return "CALL";
+    },
+
+    getUserPasswd : function () {
+        return "SELECT password FROM customers WHERE email = ?";
     }
 };
 

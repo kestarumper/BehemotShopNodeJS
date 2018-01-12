@@ -33,7 +33,12 @@ router.get('/:phrase', function (req, res, next) {
                 connection.query(getCategoriesStmnt(), function (errr, categories) {
                     connection.release();
                     if (!errr) {
-                        res.render('list', {searchquery: req.params.phrase, items: items, categories: categories});
+                        res.render('list', {
+                            searchquery: req.params.phrase,
+                            items: items,
+                            categories: categories,
+                            session: req.session
+                        });
                     }
                 });
             } else {
