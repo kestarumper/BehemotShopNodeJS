@@ -8,10 +8,14 @@ var addUser = dbConn.addUser;
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-    res.render('register', {
-        title: "Behemoth",
-        session: req.session
-    });
+    if(req.session.user == null) {
+        res.render('register', {
+            title: "Behemoth",
+            session: req.session
+        });
+    } else {
+        res.redirect('/');
+    }
 });
 
 router.post('/new', function (req, res, next) {

@@ -8,56 +8,64 @@ var authenticateUser = dbConn.authenticateUser;
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-    res.render('login', {
-        title: "Behemoth",
-        session: req.session
-    });
+    if(req.session.user == null) {
+        res.render('login', {
+            title: "Behemoth",
+            session: req.session
+        });
+    } else {
+        res.redirect('/');
+    }
 });
 
 router.post('/enter', function (req, res, next) {
-    console.log(req.body);
-    var email = req.body.email;
-    var plainpasswd = req.body.password;
+    if(req.session.user == null) {
+        console.log(req.body);
+        var email = req.body.email;
+        var plainpasswd = req.body.password;
 
-    if (email !== null && email !== "") {
+        if (email !== null && email !== "") {
 
-        connectionPool.getConnection(function (err, connection) {
-            if (err) {
-                res.json({"code": 100, "status": "Error in connection database"});
-                return;
-            }
-
-            console.log('connected as id ' + connection.threadId);
-
-            connection.query(authenticateUser(email), function (err, customer) {
-                connection.release();
-
-                console.log(customer);
-
-                if (!err && customer.length > 0) {
-                    bcrypt.compare(plainpasswd, customer[0].password, function (err, matching) {
-                        console.log(matching);
-                        if (!err && matching === true) {
-                            req.session.user = {};
-                            req.session.user.id = customer[0].id;
-                            req.session.user.name = customer[0].name;
-                            req.session.user.cart = {};
-                            res.redirect('/');
-                            next();
-                        } else {
-                            res.redirect('/login');
-                        }
-                    });
-                } else {
-                    res.redirect('/login');
+            connectionPool.getConnection(function (err, connection) {
+                if (err) {
+                    res.json({"code": 100, "status": "Error in connection database"});
+                    return;
                 }
-            });
 
-            connection.on('error', function (err) {
-                res.json({"code": 100, "status": "Error in connection database"});
-                return;
+                console.log('connected as id ' + connection.threadId);
+
+                connection.query(authenticateUser(email), function (err, customer) {
+                    connection.release();
+
+                    console.log(customer);
+
+                    if (!err && customer.length > 0) {
+                        bcrypt.compare(plainpasswd, customer[0].password, function (err, matching) {
+                            console.log(matching);
+                            if (!err && matching === true) {
+                                req.session.user = {};
+                                req.session.user.id = customer[0].id;
+                                req.session.user.name = customer[0].name;
+                                req.session.user.cart = {};
+                                res.redirect('/');
+                                next();
+                            } else {
+                                res.redirect('/login');
+                            }
+                        });
+                    } else {
+                        res.redirect('/login');
+                    }
+                });
+
+                connection.on('error', function (err) {
+                    res.json({"code": 100, "status": "Error in connection database"});
+                    return;
+                });
             });
-        });
+        }
+    } else {
+        res.redirect('/');
     }
 });
 
@@ -76,6 +84,11 @@ router.post('/enter', function (req, res, next) {
         });
         console.log(query.sql);
     })
+});
+
+router.get('/leave', function (req, res, next) {
+    req.session.destroy();
+    res.redirect('/');
 });
 
 module.exports = router;
