@@ -1,13 +1,15 @@
 -- phpMyAdmin SQL Dump
--- version 4.6.6deb4
+-- version 4.7.4
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost:3306
--- Czas generowania: 14 Sty 2018, 20:13
--- Wersja serwera: 5.7.20-0ubuntu0.17.04.1
--- Wersja PHP: 7.0.22-0ubuntu0.17.04.1
+-- Host: 127.0.0.1
+-- Czas generowania: 14 Sty 2018, 21:00
+-- Wersja serwera: 10.1.28-MariaDB
+-- Wersja PHP: 7.1.11
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
+START TRANSACTION;
 SET time_zone = "+00:00";
 
 
@@ -24,15 +26,14 @@ DELIMITER $$
 --
 -- Procedury
 --
-CREATE DEFINER=`root`@`localhost` PROCEDURE `aaa` (IN `cos` INT(8))  READS SQL DATA
-SELECT orderitem.item_name, items.price FROM orderitem INNER JOIN items ON orderitem.item_name=items.name WHERE orderitem.id_order=cos$$
-
 CREATE DEFINER=`root`@`localhost` PROCEDURE `addCustomerAddress` (IN `id_customer` INT(10), IN `id_address` INT(10))  NO SQL
+BEGIN
 IF((id_customer REGEXP '^[0-9]+$') AND (id_address REGEXP '^[0-9]+$')) THEN
 	INSERT INTO customeraddresses VALUES (id_customer, id_address);
 ELSE
 	SIGNAL SQLSTATE '44444' SET MESSAGE_TEXT = "Wrong id_customer or id_address";
-END IF$$
+END IF;
+END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `addDiscount` (IN `id_customer` INT(10))  NO SQL
 INSERT INTO discounts VALUES (id_customer, 0.05)$$
@@ -56,6 +57,9 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `prepareOrder` (IN `whoOrders` INT(1
 BEGIN
 DECLARE pom INT(2) DEFAULT 1;
 DECLARE numer INT(2) DEFAULT 1;
+DECLARE product VARCHAR(128);
+DECLARE ourOrder INT(2);
+DECLARE ourQuantity INT(2) DEFAULT 1;
     
     IF((SELECT CHARACTER_LENGTH(listOfProducts))=0) THEN
 		SIGNAL SQLSTATE '44444' SET MESSAGE_TEXT = "Your cart is empty"; 
@@ -68,9 +72,18 @@ DECLARE numer INT(2) DEFAULT 1;
     START TRANSACTION;
     BEGIN
     	INSERT INTO orders (id_customer, id_address, order_date, status, payment_method, phone) VALUES (whoOrders, whereOrders, CURDATE(), 'pending', paymentMethod, phoneNumber);
-        SELECT CHAR_LENGTH(listOfProducts),pom;    	WHILE((SELECT CHAR_LENGTH(listOfProducts))>pom) DO
-        	SELECT 'some text' as '';        	INSERT INTO orderitem (id_order, item_name, quantity)VALUES ((SELECT id_order FROM orders WHERE orders.id_customer=whoOrders AND orders.status='pending'), (SELECT SUBSTRING_INDEX((SELECT SUBSTRING_INDEX(listOfProducts, ', ', numer)),', ',-1)), 1);
-            SET pom=pom+2+(  SELECT CHAR_LENGTH((SELECT SUBSTRING_INDEX((SELECT SUBSTRING_INDEX(listOfProducts, ', ', numer)),', ',-1)))  );
+		SET ourOrder=(SELECT id_order FROM orders WHERE orders.id_customer=whoOrders AND orders.status='pending');
+    	WHILE((SELECT CHAR_LENGTH(listOfProducts))>pom) DO
+        	SET product=(SELECT SUBSTRING_INDEX((SELECT SUBSTRING_INDEX(listOfProducts, ', ', numer)),', ',-1));
+            
+        	IF((SELECT COUNT(1) FROM orderitem WHERE id_order=ourOrder AND item_name=product)=0) THEN
+            	INSERT INTO orderitem (id_order, item_name, quantity)VALUES (ourOrder, product, 1);
+            ELSE
+            	SET ourQuantity=((SELECT quantity FROM orderitem WHERE id_order=ourOrder AND item_name=product)+1);
+            	UPDATE orderitem SET quantity=ourQuantity WHERE id_order=ourOrder AND item_name=product;
+            END IF;
+            
+            SET pom=pom+2+( SELECT CHAR_LENGTH(product));
             SET numer=numer+1;
         END WHILE;
         UPDATE orders SET orders.status='order completed' WHERE orders.status='pending' AND orders.id_customer=whoOrders;
@@ -94,31 +107,30 @@ BEGIN
     END;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `showCustomerHistory` (IN `idCustomer` INT(10))  READS SQL DATA
+CREATE DEFINER=`root`@`localhost` PROCEDURE `showCustomerHistory` (IN `idCustomer` INT(10))  NO SQL
 BEGIN
-SELECT orders.id_order AS OrderNumber, orders.order_date, orders.payment_method, orders.status, addresses.city, addresses.street, addresses.number, orders.phone
-FROM orders 
-JOIN addresses ON orders.id_address=addresses.id_address
-WHERE orders.id_customer=idCustomer;
+SELECT orders.id_order AS OrderNumber, orders.order_date, orders.payment_method, orders.status, addresses.city, addresses.number, orders.phone FROM orders INNER JOIN addresses ON orders.id_address=addresses.id_address WHERE orders.id_customer=idCustomer;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `showSpecificOrder` (IN `idOrder` INT(10))  READS SQL DATA
-BEGIN
-SELECT orderitem.item_name, items.price FROM orderitem INNER JOIN items ON orderitem.item_name=items.name WHERE orderitem.id_order=idOrder;
-END$$
+SELECT orderitem.item_name, orderitem.quantity, (SELECT items.price*orderitem.quantity FROM items INNER JOIN orderitem ON items.name=orderitem.item_name WHERE id_order=idOrder) AS price , items.price AS price_per_unit FROM orderitem INNER JOIN items ON orderitem.item_name=items.name WHERE orderitem.id_order=idOrder GROUP BY item_name$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updateItem` (IN `name` VARCHAR(128), IN `price` DECIMAL(10,2), IN `category` VARCHAR(128), IN `num_of_items` INT(10), IN `image` VARCHAR(128))  NO SQL
-UPDATE items SET items.name=name, items.price=price, items.category=category, items.num_of_items=num_of_items, items.image=image$$
+BEGIN
+UPDATE items SET items.name=name, items.price=price, items.category=category, items.num_of_items=num_of_items, items.image=image;
+END$$
 
 --
 -- Funkcje
 --
 CREATE DEFINER=`root`@`localhost` FUNCTION `checkIfProductsAreAvailable` (`itemName` VARCHAR(128), `number` INT(10)) RETURNS TINYINT(1) READS SQL DATA
+BEGIN
 IF((SELECT num_of_items FROM items WHERE items.name=itemName)>=number) THEN
 	RETURN TRUE;
 ELSE
 	RETURN FALSE;
-END IF$$
+END IF;
+END$$
 
 DELIMITER ;
 
@@ -143,8 +155,35 @@ CREATE TABLE `addresses` (
 
 INSERT INTO `addresses` (`id_address`, `city`, `street`, `number`, `postalcode`, `country`) VALUES
 (1, 'wroclaw', 'mama', 88, '54-231', 'polska'),
-(4, 'Wroclaw', 'Maslicka', 68, '54-107', 'Polska'),
-(5, 'Siemianowice', 'ul. Podwawelska, 63', 63, '23-403', 'Poland');
+(4, 'Wroclaw', 'Maslicka', 68, '54-107', 'Polska');
+
+--
+-- Wyzwalacze `addresses`
+--
+DELIMITER $$
+CREATE TRIGGER `checkIfInsertedAddressDataIsRight` BEFORE INSERT ON `addresses` FOR EACH ROW BEGIN
+	IF(NEW.city NOT REGEXP '^[a-zA-Z]+(?:[- ][a-zA-Z]+)*$') THEN
+		SIGNAL SQLSTATE '44444' SET MESSAGE_TEXT = "Wrong city";
+	END IF;
+	
+	IF(NEW.country NOT REGEXP '^[a-zA-Z]+(?:[-][a-zA-Z]+)*$') THEN
+		SIGNAL SQLSTATE '44444' SET MESSAGE_TEXT = "Wrong country";
+	END IF;
+
+	IF(NEW.number NOT REGEXP '^[0-9.]*') THEN
+		SIGNAL SQLSTATE '44444' SET MESSAGE_TEXT = "Wrong number";
+	END IF;
+
+	IF(NEW.postalcode NOT REGEXP '[0-9]{2}-[0-9]{3}') THEN
+		SIGNAL SQLSTATE '44444' SET MESSAGE_TEXT = "Wrong postalcode";
+	END IF;
+
+	IF(NEW.street NOT REGEXP '^[a-zA-Z.]+(?:[-][a-zA-Z-]+)*$') THEN
+		SIGNAL SQLSTATE '44444' SET MESSAGE_TEXT = "Wrong street";
+	END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -169,15 +208,27 @@ CREATE TABLE `customer` (
 INSERT INTO `customer` (`id_customer`, `email`, `name`, `surname`, `password`, `registered_date`, `newsletter`) VALUES
 (1, 'aa@o2.pl', 'damian', 'jankowski', 'aaa', '2018-01-14 14:44:45', b'1'),
 (5, 'damianjankowski4@o2.pl', 'Damian', 'Jankowski', '$2a$10$fl9cIOlCZ51h28vwS.iNtOrysTCviTLYB8hdrnA9cayVeKPBhOiLa', '2018-01-13 23:00:00', b'1'),
-(6, 'testowy@gmail.com', 'Janusz Kowalski', 'Kowalski', '$2a$10$pEDYC1u/hDPyBLfE74uvVeKme3vJ6V1yffxinDomdJkJfD9Ww2yry', '2018-01-13 23:00:00', b'1');
+(6, 'karolinaczerniawska@o2.pl', 'Damian', 'Jankowski', '$2a$10$yLJyQvnq2vlVLA6FS246PeWD0.I1rhV1IcXD5.PM3YKjhDNVMEKMq', '2018-01-13 23:00:00', b'1');
 
 --
 -- Wyzwalacze `customer`
 --
 DELIMITER $$
-CREATE TRIGGER `checkIfClientIsSubscribedToTheNewsletter` AFTER INSERT ON `customer` FOR EACH ROW IF (NEW.newsletter) THEN
+CREATE TRIGGER `checkIfClientIsSubscribedToTheNewsletter` AFTER INSERT ON `customer` FOR EACH ROW BEGIN
+IF (NEW.newsletter) THEN
     CALL addDiscount(NEW.id_customer);
-END IF
+END IF;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `checkIfInsertedDataIsRight` BEFORE INSERT ON `customer` FOR EACH ROW #EMAIL CHECKING
+BEGIN
+    IF ( ( NEW.email REGEXP '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$' ) = 0 )
+    THEN
+		SIGNAL SQLSTATE '44444' SET MESSAGE_TEXT = "Wrong email";
+	END IF;
+END
 $$
 DELIMITER ;
 
@@ -199,7 +250,7 @@ CREATE TABLE `customeraddresses` (
 INSERT INTO `customeraddresses` (`id_customer`, `id_address`) VALUES
 (1, 1),
 (5, 4),
-(6, 5);
+(6, 4);
 
 -- --------------------------------------------------------
 
@@ -405,41 +456,9 @@ CREATE TABLE `loglogins` (
 --
 
 INSERT INTO `loglogins` (`id_customer`, `whenLoggedIn`, `type`) VALUES
-(6, '2018-01-14 15:28:42', b'1'),
-(6, '2018-01-14 15:33:05', b'1'),
-(6, '2018-01-14 15:38:29', b'1'),
-(6, '2018-01-14 15:39:38', b'1'),
-(6, '2018-01-14 15:41:58', b'1'),
-(6, '2018-01-14 16:07:34', b'1'),
-(6, '2018-01-14 16:08:02', b'1'),
-(6, '2018-01-14 16:09:21', b'1'),
-(6, '2018-01-14 16:14:50', b'1'),
-(6, '2018-01-14 16:38:54', b'1'),
-(6, '2018-01-14 17:24:37', b'1'),
-(6, '2018-01-14 17:25:09', b'1'),
-(6, '2018-01-14 17:26:25', b'1'),
-(6, '2018-01-14 17:35:49', b'1'),
-(6, '2018-01-14 17:50:21', b'1'),
-(6, '2018-01-14 17:51:19', b'1'),
-(6, '2018-01-14 17:52:45', b'1'),
-(6, '2018-01-14 17:53:44', b'1'),
-(6, '2018-01-14 17:54:22', b'1'),
-(6, '2018-01-14 17:55:34', b'1'),
-(6, '2018-01-14 17:56:42', b'1'),
-(6, '2018-01-14 17:57:36', b'1'),
-(6, '2018-01-14 18:00:30', b'1'),
-(6, '2018-01-14 18:05:32', b'1'),
-(6, '2018-01-14 18:06:03', b'1'),
-(6, '2018-01-14 18:08:46', b'1'),
-(6, '2018-01-14 18:34:33', b'1'),
-(6, '2018-01-14 18:36:03', b'1'),
-(6, '2018-01-14 18:37:27', b'1'),
-(6, '2018-01-14 18:39:12', b'1'),
-(6, '2018-01-14 18:40:25', b'1'),
-(6, '2018-01-14 18:51:45', b'1'),
-(6, '2018-01-14 19:02:59', b'1'),
-(6, '2018-01-14 19:07:49', b'1'),
-(6, '2018-01-14 19:08:47', b'1');
+(6, '2018-01-14 19:36:07', b'1'),
+(6, '2018-01-14 19:51:16', b'1'),
+(6, '2018-01-14 19:54:30', b'1');
 
 -- --------------------------------------------------------
 
@@ -460,13 +479,19 @@ CREATE TABLE `orderitem` (
 INSERT INTO `orderitem` (`id_order`, `item_name`, `quantity`) VALUES
 (1, 'buty 13', 1),
 (9, 'buty 1', 1),
-(9, 'buty 19', 2),
-(10, 'buty 25', 3),
-(10, 'buty 4Runner', 1),
-(11, 'koszula 100', 1),
-(11, 'koszula 100', 1),
-(11, 'koszula 100', 1),
-(12, 'buty 1', 1);
+(25, 'buty 1', 1),
+(25, 'koszula fox', 1),
+(27, 'buty 1', 1),
+(27, 'koszula fox', 1),
+(27, 'buty 1', 1),
+(27, 'buty 1', 1),
+(27, 'buty 1', 1),
+(28, 'buty 1', 4),
+(28, 'koszula fox', 1),
+(28, 'buty 13', 1),
+(29, 'spódnica 18', 2),
+(29, 'spódnica 71', 1),
+(30, 'spódnica 18', 2);
 
 -- --------------------------------------------------------
 
@@ -490,10 +515,12 @@ CREATE TABLE `orders` (
 
 INSERT INTO `orders` (`id_customer`, `id_address`, `order_date`, `status`, `payment_method`, `phone`, `id_order`) VALUES
 (1, 1, '2018-01-14', 'order completed', 'Cash', '222333111', 1),
-(6, 1, '2018-01-14', 'order completed', 'Cash', '444555666', 9),
-(6, 5, '2018-01-26', 'order completed', 'Transfer', '432123678', 10),
-(6, 5, '2018-01-14', 'order completed', 'Transfer', '123456789', 11),
-(6, 5, '2018-01-14', 'order completed', 'Cash', '123456789', 12);
+(5, 1, '2018-01-14', 'order completed', 'Cash', '444555666', 9),
+(1, 1, '2018-01-14', 'order completed', 'Card', '987654321', 25),
+(1, 1, '2018-01-14', 'order completed', 'Card', '987654321', 27),
+(1, 1, '2018-01-14', 'order completed', 'Card', '987654321', 28),
+(6, 4, '2018-01-14', 'order completed', 'Card', '664534128', 29),
+(6, 4, '2018-01-14', 'order completed', 'Card', '423444132', 30);
 
 -- --------------------------------------------------------
 
@@ -577,17 +604,20 @@ ALTER TABLE `sessionloggedin`
 -- AUTO_INCREMENT dla tabeli `addresses`
 --
 ALTER TABLE `addresses`
-  MODIFY `id_address` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_address` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
 --
 -- AUTO_INCREMENT dla tabeli `customer`
 --
 ALTER TABLE `customer`
   MODIFY `id_customer` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
 --
 -- AUTO_INCREMENT dla tabeli `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id_order` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_order` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+
 --
 -- Ograniczenia dla zrzutów tabel
 --
@@ -630,6 +660,7 @@ ALTER TABLE `orders`
 --
 ALTER TABLE `sessionloggedin`
   ADD CONSTRAINT `sessionloggedin_ibfk_1` FOREIGN KEY (`id_customer`) REFERENCES `customer` (`id_customer`);
+COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
