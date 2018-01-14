@@ -43,6 +43,7 @@ router.post('/enter', function (req, res, next) {
                             req.session.user.name = customer[0].name;
                             req.session.user.cart = {};
                             res.redirect('/');
+                            next();
                         } else {
                             res.redirect('/login');
                         }
@@ -60,9 +61,21 @@ router.post('/enter', function (req, res, next) {
     }
 });
 
-// TODO: accept login
-// TODO: add fields to login form
-// TODO: log user logins
-// TODO: bcrypt compare on login
+// Log login
+router.post('/enter', function (req, res, next) {
+    console.log("User "+ req.session.user.name + " successful login");
+    var insert = {
+        id_customer: req.session.user.id,
+        type: 1
+    };
+    connectionPool.getConnection(function (err, connection) {
+        var query = connection.query("INSERT INTO loglogins SET ?", insert, function (err, rows) {
+            if(err) {
+                throw err;
+            }
+        });
+        console.log(query.sql);
+    })
+});
 
 module.exports = router;
