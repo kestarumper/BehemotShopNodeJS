@@ -29,12 +29,12 @@ router.post('/enter', function (req, res, next) {
 
             console.log('connected as id ' + connection.threadId);
 
-            var loginQuery = authenticateUser();
-
             connection.query(authenticateUser(email), function (err, customer) {
                 connection.release();
+
                 console.log(customer);
-                if (!err) {
+
+                if (!err && customer.length > 0) {
                     bcrypt.compare(plainpasswd, customer[0].password, function (err, matching) {
                         console.log(matching);
                         if (!err && matching === true) {
@@ -47,6 +47,8 @@ router.post('/enter', function (req, res, next) {
                             res.redirect('/login');
                         }
                     });
+                } else {
+                    res.redirect('/login');
                 }
             });
 
