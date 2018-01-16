@@ -67,6 +67,7 @@
         <table class="table">
             <thead class="thead-inverse">
             <tr>
+                <th>Action</th>
                 <th>Product name</th>
                 <th>Product price</th>
                 <th>Quantity</th>
@@ -83,6 +84,7 @@
                 total += tempTotal;
             %>
             <tr>
+                <td><a href="/cart/remove/<%= item %>"><button class="btn btn-danger">Remove</button></a></td>
                 <td><%= item %></td>
                 <td><%= cart[item].price %></td>
                 <td><%= cart[item].quantity %></td>
@@ -144,6 +146,7 @@
 <!-- Bootstrap core JavaScript -->
 <script src="/vendor/jquery/jquery.min.js"></script>
 <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/javascripts/cart.js"></script>
 
 </body>
 

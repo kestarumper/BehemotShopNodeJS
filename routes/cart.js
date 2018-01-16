@@ -17,6 +17,15 @@ function addToCart(req, parameters) {
     }
 }
 
+function removeFromCart(req, name) {
+    var cart = req.session.user.cart;
+    if (req.session.user !== null) {
+        if (cart.hasOwnProperty(name)) {
+            delete cart[name];
+        }
+    }
+}
+
 /* GET home page. */
 router.use(function (req, res, next) {
     if (req.session.user != null) {
@@ -56,6 +65,19 @@ router.post('/add', function (req, res, next) {
     res.send("Added " + req.body.name + " to your cart");
 });
 
+router.get('/remove/:name', function (req, res, next) {
+    if (req.session.user != null) {
+        next();
+    } else {
+        res.send("Not logged in");
+    }
+});
+
+router.get('/remove/:name', function (req, res, next) {
+    removeFromCart(req, req.params.name);
+    res.redirect('/cart');
+});
+
 router.post('/transaction', function (req, res, next) {
     var itemSet = req.session.user.cart;
     var itemList = [];
@@ -82,14 +104,15 @@ router.post('/transaction', function (req, res, next) {
         var query = connection.query("CALL prepareOrder(?,?,?,?,?)", parameters, function (err, result) {
             connection.release();
             if (err) {
+                res.error(err.toString());
                 throw err;
             } else {
                 req.session.user.cart = {};
+                res.redirect('/cart');
             }
         });
         console.log(query.sql);
     });
-    res.redirect('/cart');
 });
 
 // TODO: Remove from cart
