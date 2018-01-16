@@ -83,6 +83,8 @@ router.post('/transaction', function (req, res, next) {
             connection.release();
             if (err) {
                 throw err;
+            } else {
+                req.session.user.cart = {};
             }
         });
         console.log(query.sql);
