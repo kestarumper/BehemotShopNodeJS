@@ -1,2 +1,2 @@
 *.sql linguist-vendored
-public/vendor/ linguist-vendored
+public/vendor/* linguist-vendored
